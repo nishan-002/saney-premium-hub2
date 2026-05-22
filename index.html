@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saney Premium Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<!-- Fixed Payment link inside body -->
+<a href="payment.html">Go to Payment</a>
+
+<header>Saney Premium Hub</header>
+
+<div class="top-bar">
+  <input type="text" id="searchInput" placeholder="Search Product..." onkeyup="searchProducts()">
+</div>
+
+<div class="category-filters">
+  <button onclick="filterCategory('All')">All</button>
+  <button onclick="filterCategory('Entertainment')">Entertainment</button>
+  <button onclick="filterCategory('Music')">Music</button>
+  <button onclick="filterCategory('Gaming')">Gaming</button>
+  <button onclick="filterCategory('Design')">Design</button>
+  <button onclick="filterCategory('Productivity')">Productivity</button>
+  <button onclick="filterCategory('Cloud Storage')">Cloud Storage</button>
+</div>
+
+<div class="special-offer-carousel" id="specialOffer">
+  <div class="offer-slide fade">
+    <img src="3427.png" alt="Offer 1">
+    <div class="overlay-text">🔥 10% Off on Freedom Fire Top-ups! 🔥</div>
+  </div>
+  <div class="offer-slide fade">
+    <img src="3430.png" alt="Offer 2">
+    <div class="overlay-text">🎮 Free Fire Special Offer Today! 🎮</div>
+  </div>
+</div>
+
+<div class="features">
+  <div>Instant Delivery</div>
+  <div>Secure Payment</div>
+  <div>24/7 Support</div>
+</div>
+
+<div class="products" id="productContainer"></div>
+
+<div class="newsletter-section">
+  <h3>Stay Updated!</h3>
+  <p>Subscribe to get notifications about new products, discounts, and top-ups.</p>
+  <input type="email" id="newsletterEmail" placeholder="Enter your email">
+  <button onclick="subscribeNewsletter()">Subscribe</button>
+  <p id="subscribeMessage"></p>
+</div>
+
+<div class="live-feed">
+  <h3>Live Top-Up Tracker</h3>
+  <ul id="liveFeedList"></ul>
+</div>
+
+<div class="payment-info">
+  <h3>Payment Options:</h3>
+  <p>Bank Transfer: bank name, Account No: coming soon</p>
+  <h3>eSewa QR:</h3>
+  <img src="qr n.jpeg" alt="eSewa QR" class="qr-code">
+</div>
+
+<div id="optionModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h3 id="modalTitle">Product Options</h3>
+    <div id="modalOptions"></div>
+  </div>
+</div>
+
+<script>
+// Carousel fade
+let slideIndex = 0;
+function showSlidesFade() {
+  const slides = document.querySelectorAll('.offer-slide');
+  slides.forEach(slide => slide.classList.remove('active'));
+  slideIndex++;
+  if(slideIndex > slides.length) slideIndex = 1;
+  slides[slideIndex-1].classList.add('active');
+  setTimeout(showSlidesFade, 3000);
+}
+showSlidesFade();
+
+// Product data
+const products = [
+  { name: "YouTube Premium", category: "Entertainment", options: [{duration:"1 Month", price:200},{duration:"5 Months", price:999},{duration:"12 Month", price:2199}], image: "youtube.png" },
+  { name: "Netflix Premium", category: "Entertainment", options: [{duration:"1 Month", price:350},{duration:"6 Months", price:2100}], image: "netflix.png" },
+  { name: "Spotify Premium", category: "Music", options: [{duration:"1 Month", price:249},{duration:"3 Months", price:750}], image: "spotify.png" },
+  { name: "Disney+ Hotstar", category: "Entertainment", options: [{duration:"1 Month", price:200},{duration:"6 Months", price:1000}], image: "disney.png" },
+  { name: "Steam Premium", category: "Gaming", options: [{duration:"NPR 100", price:100},{duration:"NPR 500", price:500}], image: "steam.png" },
+  { name: "Canva Pro", category: "Design", options: [{duration:"1 Month", price:300},{duration:"12 Months", price:2500}], image: "canva.png" },
+  { name: "NTC Data Pack", category: "Internet", options: [{duration:"1 Month", price:150},{duration:"3 Months", price:400}], image: "ntc.png" },
+  { name: "Dropbox Premium", category: "Cloud Storage", options: [{duration:"1 Month", price:250},{duration:"12 Months", price:2000}], image: "dropbox.png" },
+  { name: "Grammarly Premium", category: "Productivity", options: [{duration:"1 Month", price:300},{duration:"12 Months", price:2500}], image: "grammarly.png" },
+  { name: "CapCut Pro", category: "Video Editing", options: [{duration:"1 Month", price:400},{duration:"3 Months", price:1250},{duration:"12 Months", price:4999}], image: "capcut.png" },
+  { name: "ChatGPT Pro", category: "AI Assistant", options: [{duration:"1 Month", price:500},{duration:"3Months", price:1249},{duration:"12 Months", price:4500}], image: "chatgpt.png" },
+  { name: "Free Fire Top-up", category: "Gaming", options: [{duration:"355 Diamonds", price:295},{duration:"115 Diamonds", price:100},{duration:"240 Diamonds", price:195},{duration:"480 Diamonds", price:395},{duration:"610 Diamonds", price:490},{duration:"850 Diamonds", price:685},{duration:"1480 Diamonds", price:1150},{duration:"2530 Diamonds", price:1950},{duration:"3770 Diamonds", price:2890},{duration:"5060 Diamonds", price:3950},{duration:"10120 Diamonds", price:8050},{duration:"1 weakly", price:195},{duration:"1 monthly", price:955}], image: "freefire.png" },
+  { name: "PUBG Mobile Top-up", category: "Gaming", options: [{duration:"300 UC", price:250},{duration:"1000 UC", price:800}], image: "pubg.png" },
+  { name: "Mobile Legends Top-up", category: "Gaming", options: [{duration:"300 Diamonds", price:200},{duration:"1000 Diamonds", price:700}], image: "mobilelegends.png" }
+];
+
+// Render products
+function renderProducts(list = products) {
+  const container = document.getElementById("productContainer");
+  container.innerHTML = "";
+  list.forEach(prod => {
+    container.innerHTML += `
+      <div class="product-card">
+        <img src="${prod.image}" alt="${prod.name}">
+        <h3>${prod.name}</h3>
+        <button class="buy-button" onclick="openModal('${prod.name}')">Buy / Premium</button>
+      </div>
+    `;
+  });
+}
+
+// Category filter
+function filterCategory(cat) {
+  if(cat === 'All') renderProducts(products);
+  else renderProducts(products.filter(p => p.category === cat));
+}
+
+// Search
+function searchProducts() {
+  const input = document.getElementById("searchInput").value.toLowerCase();
+  const filtered = products.filter(p => p.name.toLowerCase().includes(input));
+  renderProducts(filtered);
+}
+
+// Modal logic
+const modal = document.getElementById("optionModal");
+const modalTitle = document.getElementById("modalTitle");
+const modalOptions = document.getElementById("modalOptions");
+
+function openModal(productName) {
+  const product = products.find(p => p.name === productName);
+  modalTitle.innerText = product.name + " Options";
+  modalOptions.innerHTML = "";
+  product.options.forEach(opt => {
+    modalOptions.innerHTML += `
+      <div class="product-option">
+        <span>${opt.duration} - Rs ${opt.price}</span>
+        <button class="buy-button" onclick="goToPayment('${product.name}','${opt.duration}',${opt.price})">Buy Now</button>
+      </div>
+    `;
+  });
+  modal.style.display = "block";
+}
+
+function closeModal() {
+  modal.style.display = "none";
+}
+
+function goToPayment(name, duration, price) {
+  window.location.href = `payment.html?name=${encodeURIComponent(name)}&duration=${encodeURIComponent(duration)}&price=${price}`;
+}
+
+window.onclick = function(event) {
+  if (event.target == modal) closeModal();
+}
+
+// Newsletter subscribe & send notification
+function subscribeNewsletter() {
+  const msg = document.getElementById('subscribeMessage');
+  msg.innerText = "Subscribed! Notifications will appear in your browser.";
+  msg.style.color = "#00ffff";
+  sendNotice("Saney Premium Hub", "Thanks for subscribing! You’ll get product notifications.");
+  document.getElementById('newsletterEmail').value = "";
+}
+
+// Web push notifications
+if("Notification" in window){
+  Notification.requestPermission();
+}
+function sendNotice(title, message){
+  if(Notification.permission === "granted"){
+    new Notification(title, {body: message, icon: "logo.png"});
+  }
+}
+
+// Example notices on page load
+const notices = [
+  { name: "Welcome to saney premium Hub", message: "thanks for joining us!" },
+  { name: "Free Fire Top-up", message: "500 Diamonds special price today!" },
+  { name: "ChatGPT Pro", message: "1 Month Pro Subscription Discount!" },
+  { name: "Our owner", message: "Nishan subedi is the owner of this amazing store!" }
+];
+notices.forEach(n => sendNotice(n.name, n.message));
+
+// Live Top-Up Tracker
+const feedList = document.getElementById("liveFeedList");
+const recentPurchases = [
+  "sushil from Kathmandu bought YouTube Premium",
+  "Nishan from Pokhara bought Spotify Premium",
+  "Shrijan from Lalitpur bought Free Fire Top-up",
+  "Ashyaug from Bhaktapur bought ChatGPT Pro",
+  "prabin from Hetauda bought Mobile Legends Top-up"
+];
+function addPurchaseToFeed(message) {
+  const li = document.createElement("li");
+  li.textContent = message;
+  feedList.prepend(li);
+  if(feedList.children.length > 10) feedList.removeChild(feedList.lastChild);
+}
+setInterval(() => {
+  const randomIndex = Math.floor(Math.random() * recentPurchases.length);
+  addPurchaseToFeed(recentPurchases[randomIndex]);
+}, 5000);
+
+renderProducts();
+</script>
+</body>
+</html>
